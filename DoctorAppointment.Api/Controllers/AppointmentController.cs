@@ -1,5 +1,4 @@
-﻿
-using DoctorAppointment.Api.DTOs;
+﻿using DoctorAppointment.Api.DTOs;
 using DoctorAppointment.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 

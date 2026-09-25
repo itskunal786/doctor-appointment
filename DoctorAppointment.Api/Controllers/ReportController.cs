@@ -1,5 +1,4 @@
-﻿
-using DoctorAppointment.Api.Services;
+﻿using DoctorAppointment.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoctorAppointment.Api.Controllers;

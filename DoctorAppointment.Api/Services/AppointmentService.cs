@@ -1,5 +1,4 @@
-﻿
-using DoctorAppointment.Api.Data;
+﻿using DoctorAppointment.Api.Data;
 using DoctorAppointment.Api.DTOs;
 using DoctorAppointment.Api.Models;
 
@@ -11,44 +10,47 @@ public sealed class AppointmentService
     {
         using ClinicDbContext context = new();
 
-        bool valid = DateTime.TryParse(
+        bool validDateTime = DateTime.TryParse(
             data.AppointmentDate + " " + data.AppointmentTime,
-            out DateTime dateTime);
+            out DateTime appointmentDateTime);
 
-        if (!valid)
+        if (!validDateTime)
             return "Invalid date or time";
 
-        if (dateTime < DateTime.Now)
+        if (appointmentDateTime < DateTime.Now)
             return "Past time not allowed";
 
-        if (dateTime.Hour < 9 ||
-            dateTime.Hour > 21 ||
-            dateTime.Minute % 15 != 0 ||
-            dateTime.Second != 0 ||
-            (dateTime.Hour == 21 && dateTime.Minute > 0))
+        if (appointmentDateTime.Hour < 9 ||
+            appointmentDateTime.Hour > 21 ||
+            appointmentDateTime.Minute % 15 != 0 ||
+            appointmentDateTime.Second != 0 ||
+            (appointmentDateTime.Hour == 21 &&
+             appointmentDateTime.Minute > 0))
         {
             return "Select time between 9 AM and 9 PM";
         }
 
         bool booked = context.Appointments.Any(x =>
-            x.AppointmentDateTime == dateTime);
+     x.AppointmentDateTime == appointmentDateTime);
 
         if (booked)
+        {
             return "Time already booked";
+        }
 
         Appointment appointment = new()
         {
             PatientName = data.PatientName,
             PhoneNumber = data.PhoneNumber,
             Description = data.Description,
-            AppointmentDateTime = dateTime,
+            AppointmentDateTime = appointmentDateTime,
             Status = "Pending"
         };
 
         context.Appointments.Add(appointment);
         context.SaveChanges();
 
-        return "Appointment booked";
+        return "Appointment booked successfully";
     }
 
     public List<Appointment> GetAppointments(DateTime date)
@@ -66,7 +68,8 @@ public sealed class AppointmentService
     }
 
     public string UpdateStatus(
-        int id, AppointmentStatusDto data)
+        int id,
+        AppointmentStatusDto data)
     {
         using ClinicDbContext context = new();
 
@@ -83,6 +86,7 @@ public sealed class AppointmentService
         }
 
         appointment.Status = data.Status;
+
         context.SaveChanges();
 
         return "Status updated";

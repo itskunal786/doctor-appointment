@@ -1,6 +1,6 @@
-﻿using DoctorAppointment.Api.Data;
+﻿
 using DoctorAppointment.Api.DTOs;
-using DoctorAppointment.Api.Models;
+using DoctorAppointment.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoctorAppointment.Api.Controllers;
@@ -9,99 +9,37 @@ namespace DoctorAppointment.Api.Controllers;
 [ApiController]
 public sealed class AppointmentController : ControllerBase
 {
+    private readonly AppointmentService service = new();
+
     [HttpPost("book")]
     public IActionResult Book(BookAppointmentDto data)
     {
-        using ClinicDbContext context = new();
+        string result = service.Book(data);
 
-        bool validDateTime = DateTime.TryParse(
-            data.AppointmentDate + " " + data.AppointmentTime,
-            out DateTime appointmentDateTime);
+        if (result != "Appointment booked")
+            return BadRequest(new { message = result });
 
-        if (!validDateTime)
-            return BadRequest(
-                new { message = "Invalid date or time" });
-
-        if (appointmentDateTime < DateTime.Now)
-            return BadRequest(
-                new { message = "Past time not allowed" });
-
-        if (appointmentDateTime.Hour < 9 ||
-            appointmentDateTime.Hour > 21 ||
-            appointmentDateTime.Minute % 15 != 0 ||
-            appointmentDateTime.Second != 0 ||
-            (appointmentDateTime.Hour == 21 &&
-             appointmentDateTime.Minute > 0))
-        {
-            return BadRequest(
-                new { message = "Select time between 9 AM and 9 PM" });
-        }
-
-        bool booked = context.Appointments.Any(x =>
-            x.AppointmentDateTime == appointmentDateTime);
-
-        if (booked)
-            return BadRequest(
-                new { message = "Time already booked" });
-
-        Appointment appointment = new()
-        {
-            PatientName = data.PatientName,
-            PhoneNumber = data.PhoneNumber,
-            Description = data.Description,
-            AppointmentDateTime = appointmentDateTime,
-            Status = "Pending"
-        };
-
-        context.Appointments.Add(appointment);
-        context.SaveChanges();
-
-        return Ok(
-            new { message = "Appointment booked" });
+        return Ok(new { message = result });
     }
 
     [HttpGet]
     public IActionResult GetAppointments(DateTime date)
     {
-        using ClinicDbContext context = new();
-
-        DateTime nextDate = date.Date.AddDays(1);
-
-        var appointments = context.Appointments
-            .Where(x =>
-                x.AppointmentDateTime >= date.Date &&
-                x.AppointmentDateTime < nextDate)
-            .OrderBy(x => x.AppointmentDateTime)
-            .ToList();
-
-        return Ok(appointments);
+        return Ok(service.GetAppointments(date));
     }
 
     [HttpPut("{id}/status")]
     public IActionResult UpdateStatus(
-        int id,
-        AppointmentStatusDto data)
+        int id, AppointmentStatusDto data)
     {
-        using ClinicDbContext context = new();
+        string result = service.UpdateStatus(id, data);
 
-        Appointment? appointment =
-            context.Appointments.Find(id);
-
-        if (appointment == null)
+        if (result == "Appointment not found")
             return NotFound();
 
-        if (data.Status != "Appeared" &&
-            data.Status != "NoShow")
-        {
-            return BadRequest(
-                new { message = "Invalid status" });
-        }
+        if (result != "Status updated")
+            return BadRequest(new { message = result });
 
-        appointment.Status = data.Status;
-
-        context.SaveChanges();
-
-        return Ok(
-            new { message = "Status updated" });
+        return Ok(new { message = result });
     }
 }

@@ -1,4 +1,5 @@
-﻿using DoctorAppointment.Api.Data;
+﻿
+using DoctorAppointment.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoctorAppointment.Api.Controllers;
@@ -7,32 +8,16 @@ namespace DoctorAppointment.Api.Controllers;
 [ApiController]
 public sealed class ReportController : ControllerBase
 {
+    private readonly ReportService service = new();
+
     [HttpGet]
     public IActionResult GetReport(
-        DateTime fromDate,
-        DateTime toDate)
+        DateTime fromDate, DateTime toDate)
     {
         if (fromDate.Date > toDate.Date)
             return BadRequest(
                 new { message = "Invalid date range" });
 
-        using ClinicDbContext context = new();
-
-        DateTime endDate =
-            toDate.Date.AddDays(1);
-
-        var appointments = context.Appointments
-            .Where(x =>
-                x.AppointmentDateTime >= fromDate.Date &&
-                x.AppointmentDateTime < endDate);
-
-        return Ok(new
-        {
-            appeared = appointments.Count(
-                x => x.Status == "Appeared"),
-
-            noShow = appointments.Count(
-                x => x.Status == "NoShow")
-        });
+        return Ok(service.GetReport(fromDate, toDate));
     }
 }

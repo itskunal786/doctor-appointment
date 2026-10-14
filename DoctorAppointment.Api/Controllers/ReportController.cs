@@ -7,15 +7,22 @@ namespace DoctorAppointment.Api.Controllers;
 [ApiController]
 public sealed class ReportController : ControllerBase
 {
-    private readonly ReportService service = new();
+    private readonly ReportService service;
+
+    public ReportController(ReportService service)
+    {
+        this.service = service;
+    }
 
     [HttpGet]
     public IActionResult GetReport(
         DateTime fromDate, DateTime toDate)
     {
         if (fromDate.Date > toDate.Date)
+        {
             return BadRequest(
                 new { message = "Invalid date range" });
+        }
 
         return Ok(service.GetReport(fromDate, toDate));
     }

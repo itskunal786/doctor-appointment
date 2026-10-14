@@ -8,7 +8,12 @@ namespace DoctorAppointment.Api.Controllers;
 [ApiController]
 public sealed class AppointmentController : ControllerBase
 {
-    private readonly AppointmentService service = new();
+    private readonly AppointmentService service;
+
+    public AppointmentController(AppointmentService service)
+    {
+        this.service = service;
+    }
 
     [HttpPost("book")]
     public IActionResult Book(BookAppointmentDto data)

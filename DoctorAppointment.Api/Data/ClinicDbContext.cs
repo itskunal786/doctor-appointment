@@ -5,14 +5,11 @@ namespace DoctorAppointment.Api.Data;
 
 public sealed class ClinicDbContext : DbContext
 {
-    public DbSet<Appointment> Appointments { get; set; }
-
-    protected override void OnConfiguring(
-        DbContextOptionsBuilder optionsBuilder)
+    public ClinicDbContext(
+        DbContextOptions<ClinicDbContext> options)
+        : base(options)
     {
-        optionsBuilder.UseSqlServer(
-            "Server=DESKTOP-AVTPTVK;Database=DoctorAppointment;Trusted_Connection=True;TrustServerCertificate=True;");
-
-        base.OnConfiguring(optionsBuilder);
     }
+
+    public DbSet<Appointment> Appointments { get; set; } = null!;
 }

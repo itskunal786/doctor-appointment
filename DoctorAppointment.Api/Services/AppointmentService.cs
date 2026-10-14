@@ -6,10 +6,15 @@ namespace DoctorAppointment.Api.Services;
 
 public sealed class AppointmentService
 {
+    private readonly ClinicDbContext context;
+
+    public AppointmentService(ClinicDbContext context)
+    {
+        this.context = context;
+    }
+
     public string Book(BookAppointmentDto data)
     {
-        using ClinicDbContext context = new();
-
         bool validDateTime = DateTime.TryParse(
             data.AppointmentDate + " " + data.AppointmentTime,
             out DateTime appointmentDateTime);
@@ -31,12 +36,10 @@ public sealed class AppointmentService
         }
 
         bool booked = context.Appointments.Any(x =>
-     x.AppointmentDateTime == appointmentDateTime);
+            x.AppointmentDateTime == appointmentDateTime);
 
         if (booked)
-        {
             return "Time already booked";
-        }
 
         Appointment appointment = new()
         {
@@ -48,15 +51,14 @@ public sealed class AppointmentService
         };
 
         context.Appointments.Add(appointment);
+
         context.SaveChanges();
 
-        return "Appointment booked successfully";
+        return "Appointment booked";
     }
 
     public List<Appointment> GetAppointments(DateTime date)
     {
-        using ClinicDbContext context = new();
-
         DateTime nextDate = date.Date.AddDays(1);
 
         return context.Appointments
@@ -68,11 +70,8 @@ public sealed class AppointmentService
     }
 
     public string UpdateStatus(
-        int id,
-        AppointmentStatusDto data)
+        int id, AppointmentStatusDto data)
     {
-        using ClinicDbContext context = new();
-
         Appointment? appointment =
             context.Appointments.Find(id);
 

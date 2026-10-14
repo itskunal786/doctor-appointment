@@ -1,14 +1,18 @@
-﻿
-using DoctorAppointment.Api.Data;
+﻿using DoctorAppointment.Api.Data;
 
 namespace DoctorAppointment.Api.Services;
 
 public sealed class ReportService
 {
+    private readonly ClinicDbContext context;
+
+    public ReportService(ClinicDbContext context)
+    {
+        this.context = context;
+    }
+
     public object GetReport(DateTime fromDate, DateTime toDate)
     {
-        using ClinicDbContext context = new();
-
         DateTime endDate = toDate.Date.AddDays(1);
 
         var appointments = context.Appointments
